@@ -1,0 +1,14 @@
+{
+  "recipe": [
+    {
+      "name": "Chicken Curry",
+      "ingredients": "Chicken Breast, Garlic, ginger",
+      "description": "Oil"
+    },
+    {
+      "name": "Mutton Biryani",
+      "ingredients": "Mutton, Rice",
+      "description": "Oil"
+    }
+  ]
+}
