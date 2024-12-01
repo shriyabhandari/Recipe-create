@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import image1 from "../images/image1.jpg";
+import image5 from "../images/image5.png";
 import image3 from "../images/image3.jpg";
 import "../Pages/Recipe.css";
+import { CiSquarePlus } from "react-icons/ci";
 import axios from 'axios';
 
 const Recipes = () => {
@@ -35,16 +36,20 @@ const Recipes = () => {
     setIsEditModalVisible(true); 
   };
   
-  
-
   const closeEditModal = () => {
     setIsEditModalVisible(false);
-    setEditRecipe(null); // Clear edit state
+    setEditRecipe(null); 
   };
 
   // Add recipe to db.json
   const handleAddRecipe = async (e) => {
     e.preventDefault();
+
+    if (!name.trim() || !ingredient.trim() || !description.trim()){
+      alert("All Fiels are required");
+      return;
+    }
+
     const newRecipe = {
       name,
       ingredients: ingredient,
@@ -53,8 +58,8 @@ const Recipes = () => {
 
     try {
       const response = await axios.post("http://localhost:3000/recipe", newRecipe);
-      setRecipes((prev) => [...prev, response.data]); // Update recipes list
-      setIsRecipeAdded(true); // Change to list view after adding recipe
+      setRecipes((prev) => [...prev, response.data]); 
+      setIsRecipeAdded(true); 
       setName('');
       setIngredient('');
       setDescription('');
@@ -74,6 +79,12 @@ const Recipes = () => {
 
   const handleEditRecipe = async (e) => {
     e.preventDefault(); 
+
+      if(!editRecipe?.name.trim() || !editRecipe?.ingredients.trim() || !editRecipe?.description.trim()){
+        alert("All fiels are required");
+        return
+      }
+
       try {
       const response = await axios.put(`http://localhost:3000/recipe/${editRecipe.id}`,editRecipe);
       setRecipes((prevRecipes) =>
@@ -81,37 +92,51 @@ const Recipes = () => {
           recipe.id === editRecipe.id ? response.data : recipe
         )
       );     
-      setIsEditModalVisible(false);
-      setEditRecipe(null);
+      // setIsEditModalVisible(false);
+      // setEditRecipe(null);
+      setSelectedRecipe(response.data);
+      closeEditModal();
     } catch (error) {
       console.error("Error updating recipe:", error);
     }
   };
-  
 
+  const handleDeleteRecipe = async (id) =>{
+    try{
+      await axios.delete(`http://localhost:3000/recipe/${id}`);
+      setRecipes((prevRecipes) => prevRecipes.filter((recipe) => recipe.id!==id));
+      if(selectedRecipe?.id == id){
+        setSelectedRecipe(null);
+      }
+    }catch(error){
+      console.error("Error deleting recipe:", error);
+    }
+}
 
-
+    
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex max-w-full flex-col md:flex-row">
       {/* Recipe List */}
-      <div className="w-1/2 bg-white flex flex-col items-center justify-center ps-36">
-        <div className="flex gap-10 border-2 w-80 space-x-36 ms-1">
-          <h2 className="text-xl mb-4 mt-4 pl-2">Recipe's List</h2>
-          <i className="fa-solid fa-plus mt-6 cursor-pointer" onClick={openModal}></i>
+      <div className="md:w-1/2 w-full bg-white flex flex-col items-center justify-center px-6 md:ps-36">
+        <div className="flex gap-96 md:gap-10 border-b-2 border-r-2 border-l-2 w-full md:w-80 space-x-6 md:space-x-36 md:mt-0 mt-2">
+          <h2 className="text-lg text-black mb-4 mt-4 pl-2">Recipe's List</h2>
+          <CiSquarePlus className='mt-5 text-xl text-black'onClick={openModal} />          
+          {/* <i className="fa-solid fa-plus mt-6 cursor-pointer" onClick={openModal}></i> */}
         </div>
 
         {!isRecipeAdded ? (
-          <div className="items-center border-2 w-80 p-20">
-            <img src={image3} alt="Placeholder" className="w-72 h-48" />
+          <div className="items-center border-r-2 border-l-2 border-t-2 w-full md:w-80 p-20" style={{height:"460px"}}>
+            <img src={image3} alt="Placeholder" className="mt-20 ms-24 md:ms-0" style={{width:"210px" , height:"150px"}}/>
             <button
-              className="bg-blue-500 text-white px-2 py-2 rounded shadow hover:bg-blue-600 mt-4 ms-8"
+              className="bg-[#548cfb] text-white px-2 py-1 rounded shadow hover:bg-blue-600 mt-5 ms-40 md:ms-7"
               onClick={openModal}
             >
               Add Recipe
             </button>
           </div>
         ) : (
-          <div className="border-2 w-80 p-4 ms-1" style={{ height: "450px" }}>
+          //add recipe garey paxi aaune box
+          <div className="border-r-2 p-4 ms-1" style={{ height: "450px", width:"316px" }}>
             <ul className='me-36'>
               {recipes.map((recipe) => (
                 <li
@@ -128,14 +153,14 @@ const Recipes = () => {
       </div>
 
       {/* Recipe Details */}
-      <div className="w-1/2 flex flex-col items-center justify-center pe-60">
+      <div className="w-full md:w-1/2 flex flex-col items-center justify-center md:pe-60 md:border-r-2" style={{ width: "600px"}}>
         {selectedRecipe ? (
-          <div className="border-2 p-6 me-44" style={{width:"600px", height:"515px"}}>
+          <div className="p-6 me-48 ms-32" style={{width:"600px", height:"515px"}}>
             <div className="flex justify-between items-center mt-2">
-            <h2 className="text-xl mb-2">{selectedRecipe.name}'s Recipe</h2>
-            <i className="fa-solid fa-pen-to-square ms-64 mb-2 cursor-pointer"
+            <h2 className="text-lg mb-2">{selectedRecipe.name}'s Recipe</h2>
+            <i className="fa-solid fa-pen-to-square ms-72 mb-2 cursor-pointer"
              onClick={() => openEditModal(selectedRecipe)}></i>
-            <i className="fa-solid fa-trash mb-2"></i>
+            <i className="fa-solid fa-trash mb-2 ms-1 cursor-pointer" onClick={()=>handleDeleteRecipe(selectedRecipe.id)}></i>
           </div>
            <hr />
             <h3 className="text-lg mt-2">Ingredients:</h3>
@@ -145,12 +170,18 @@ const Recipes = () => {
               ))}
             </ul>
             <h3 className="text-lg">Directions:</h3>
-            <li>{selectedRecipe.description}</li>
+            <ul className="list-disc ml-5 mb-4">
+              {selectedRecipe.description.split(',').map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+
+            {/* <li>{selectedRecipe.description}</li> */}
           </div>
         ) : (
-          <div className="flex flex-col items-center">
-            <img src={image1} alt="Placeholder" className="w-48 h-48 mb-4" />
-            <p className="text-gray-500 text-lg font-medium">
+          <div className="flex flex-col items-center text-center">
+            <img src={image5} alt="Placeholder" className="w-3/4 sm:w-1/2 md:w-80 mb-4 mr-3"/>
+            <p className="text-black text-lg font-medium">
               Select a recipe for details!
             </p>
           </div>
@@ -173,7 +204,7 @@ const Recipes = () => {
             </div>
             <hr />
 
-            <form onSubmit={handleAddRecipe}>
+            {/* <form onSubmit={handleAddRecipe}> */}
               <div className="flex flex-col mt-6">
                 <label className="rounded-md">Recipe Name</label>
                 <input
@@ -214,14 +245,14 @@ const Recipes = () => {
                 >
                   Cancel
                 </button>
-                <button
+                <button onClick={handleAddRecipe}
                   type="submit"
                   className="bg-blue-500 text-white px-4 py-2 pt-2 rounded shadow hover:bg-blue-600"
                 >
                   Add Recipe
                 </button>
               </div>
-            </form>
+            {/* </form> */}
           </div>
         </div>
       )} 
@@ -243,7 +274,7 @@ const Recipes = () => {
             </div>
             <hr />
 
-            <form onSubmit={handleEditRecipe}>
+            {/* <form onSubmit={handleEditRecipe}> */}
             <div className="flex flex-col mt-6">
               <label className="rounded-md">Recipe Name</label>
               <input
@@ -278,11 +309,11 @@ const Recipes = () => {
                 className="border-2 px-4 py-2 rounded" onClick={closeEditModal}>
                 Cancel
               </button>
-              <button type="submit" className="bg-blue-500 text-white px-4 py-2 pt-2 rounded shadow hover:bg-blue-600">
+              <button onClick={handleEditRecipe} type="submit" className="bg-blue-500 text-white px-4 py-2 pt-2 rounded shadow hover:bg-blue-600">
                 Edit Recipe
               </button>
             </div>
-            </form>
+            {/* </form> */}
           </div>
         </div>
       )}
